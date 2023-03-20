@@ -75,3 +75,208 @@ A continuación vamos a crear la BBDD de este proyecto, ejecutando el siguiente 
 ```bash
 $ php bin/console doctrine:database:create
 ```
+
+## Entidades
+***
+
+Ahora vamos a crear los archivos desde los cuales manejaremos las migraciones y tablas de la BBDD
+
+Creamos una nueva entidad:
+
+```bash
+$ php bin/console make:entity
+```
+
+Y el asistente lo completamos con la siguiente informacion:
+
+```bash
+ Class name of the entity to create or update (e.g. OrangeChef):
+ > Product
+Product
+
+ created: src/Entity/Product.php
+ created: src/Repository/ProductRepository.php
+ 
+ Entity generated! Now let's add some fields!
+ You can always add more fields later manually or by re-running this command.
+ 
+  New property name (press <return> to stop adding fields):
+ > name
+
+ Field type (enter ? to see all types) [string]:
+ > string
+
+
+ Field length [255]:
+ > 128
+
+ Can this field be null in the database (nullable) (yes/no) [no]:
+ > no
+ 
+   New property name (press <return> to stop adding fields):
+ > summary
+
+ Field type (enter ? to see all types) [string]:
+ > text
+
+ Can this field be null in the database (nullable) (yes/no) [no]:
+ > no
+
+```
+
+
+La siguiente entidad que vamos a crear es ***Metadata***, y tendra la siguiente estructura:
+
+- **id:** PK, int AutoIncrement
+- **code:** string 128, not null
+- **content:** text, not null
+
+```bash
+$ php bin/console make:entity
+
+ Class name of the entity to create or update (e.g. BravePopsicle):
+ > Metadata
+Metadata
+
+ created: src/Entity/Metadata.php
+ created: src/Repository/MetadataRepository.php
+ 
+ Entity generated! Now let's add some fields!
+ You can always add more fields later manually or by re-running this command.
+
+ New property name (press <return> to stop adding fields):
+ > code
+
+ Field type (enter ? to see all types) [string]:
+ >
+
+
+ Field length [255]:
+ > 128
+
+ Can this field be null in the database (nullable) (yes/no) [no]:
+ >
+
+ updated: src/Entity/Metadata.php
+
+ Add another property? Enter the property name (or press <return> to stop adding fields):
+ > content
+
+ Field type (enter ? to see all types) [string]:
+ > text
+text
+
+ Can this field be null in the database (nullable) (yes/no) [no]:
+ > no
+
+ updated: src/Entity/Metadata.php
+
+ Add another property? Enter the property name (or press <return> to stop adding fields):
+ >
+
+
+           
+  Success! 
+           
+
+ Next: When you're ready, create a migration with php bin/console make:migration
+```
+
+Ahora vamos a crear la entidad ***Comment*** para que nuestros productos puedan tambien tener comentarios. Esta entidad tendra la siguiente estructura
+
+- **id:** PK, int AutoIncrement
+- **content:** text, not null
+
+```bash
+$ php bin/console make:entity
+
+ Class name of the entity to create or update (e.g. GrumpyPizza):
+ > Comment
+Comment
+
+ created: src/Entity/Comment.php
+ created: src/Repository/CommentRepository.php
+
+ Entity generated! Now let's add some fields!
+ You can always add more fields later manually or by re-running this command.
+
+ New property name (press <return> to stop adding fields):
+ > content
+
+ Field type (enter ? to see all types) [string]:
+ > text
+text
+
+ Can this field be null in the database (nullable) (yes/no) [no]:
+ >
+
+ updated: src/Entity/Comment.php
+
+ Add another property? Enter the property name (or press <return> to stop adding fields):
+ > 
+
+
+           
+  Success! 
+           
+
+ Next: When you're ready, create a migration with php bin/console make:migration
+```
+
+La siguiente entidad es ***Tag*** para que nuestros productos puedan ser identificados por etiquetas, esta entidad tendrá la siguiente estructura:
+
+- **id:** PK, int AutoIncrement
+- **name:** string 128, not null
+
+```bash
+$ php bin/console make:entity
+
+ Class name of the entity to create or update (e.g. DeliciousPopsicle):
+ > Tag
+Tag
+
+ created: src/Entity/Tag.php
+ created: src/Repository/TagRepository.php
+
+ Entity generated! Now let's add some fields!
+ You can always add more fields later manually or by re-running this command.
+
+ New property name (press <return> to stop adding fields):
+ > name
+
+ Field type (enter ? to see all types) [string]:
+ >
+
+
+ Field length [255]:
+ > 128
+
+ Can this field be null in the database (nullable) (yes/no) [no]:
+ >
+
+ updated: src/Entity/Tag.php
+
+ Add another property? Enter the property name (or press <return> to stop adding fields):
+ >
+
+
+           
+  Success! 
+           
+
+ Next: When you're ready, create a migration with php bin/console make:migration
+```
+
+Ya tenemos nuestras entidades, ahora vamos a generar las migraciones para que podamos, posteriormente, generar las tablas en nuestra BBDD
+
+Para eso, en primer lugar creamos los archivos de migraciones con el siguiente comando:
+
+```bash
+$ php bin/console make:migration
+```
+
+Por último, vamos a ejecutar este archivo de migracion para que se generen las tablas en nuestra BBDD:
+
+```bash
+$ php bin/console doctrine:migrations:migrate
+```
