@@ -275,7 +275,303 @@ Para eso, en primer lugar creamos los archivos de migraciones con el siguiente c
 $ php bin/console make:migration
 ```
 
+Se generará un archivo PHP con el codigo de base de datos para generar estas tablas, de acuerdo al DBMS que tengamos configurado.
+Para este ejemplo, el DBMS es MySQL 8.0, por lo que el archivo generado tiene este código:
+
+***/migrations/Version20230320203803.php***
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace DoctrineMigrations;
+
+use Doctrine\DBAL\Schema\Schema;
+use Doctrine\Migrations\AbstractMigration;
+
+/**
+ * Auto-generated Migration: Please modify to your needs!
+ */
+final class Version20230320203803 extends AbstractMigration
+{
+    public function getDescription(): string
+    {
+        return 'Initial configuration (four tables)';
+    }
+
+    public function up(Schema $schema): void
+    {
+        // this up() migration is auto-generated, please modify it to your needs
+        $this->addSql('CREATE TABLE comment (id INT AUTO_INCREMENT NOT NULL, content LONGTEXT NOT NULL, PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8 COLLATE `utf8_unicode_ci` ENGINE = InnoDB');
+        $this->addSql('CREATE TABLE metadata (id INT AUTO_INCREMENT NOT NULL, code VARCHAR(128) NOT NULL, content LONGTEXT NOT NULL, PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8 COLLATE `utf8_unicode_ci` ENGINE = InnoDB');
+        $this->addSql('CREATE TABLE product (id INT AUTO_INCREMENT NOT NULL, name VARCHAR(128) NOT NULL, summary LONGTEXT NOT NULL, PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8 COLLATE `utf8_unicode_ci` ENGINE = InnoDB');
+        $this->addSql('CREATE TABLE tag (id INT AUTO_INCREMENT NOT NULL, name VARCHAR(128) NOT NULL, PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8 COLLATE `utf8_unicode_ci` ENGINE = InnoDB');
+    }
+
+    public function down(Schema $schema): void
+    {
+        // this down() migration is auto-generated, please modify it to your needs
+        $this->addSql('DROP TABLE comment');
+        $this->addSql('DROP TABLE metadata');
+        $this->addSql('DROP TABLE product');
+        $this->addSql('DROP TABLE tag');
+    }
+}
+
+```
+
 Por último, vamos a ejecutar este archivo de migracion para que se generen las tablas en nuestra BBDD:
+
+```bash
+$ php bin/console doctrine:migrations:migrate
+```
+
+Si queremos ver el listado de migraciones que tenemos en nuestro sistema, podemos ejecutar el comando
+
+```bash
+$ php bin/console doctrine:migrations:list
+```
+
+El resultado será algo como esto:
+
+```bash
++------------------------------------------+----------+---------------------+----------------+-------------------------------------+
+| Migration Versions                                                                         |                                     |
++------------------------------------------+----------+---------------------+----------------+-------------------------------------+
+| Migration                                | Status   | Migrated At         | Execution Time | Description                         |
++------------------------------------------+----------+---------------------+----------------+-------------------------------------+
+| DoctrineMigrations\Version20230320203803 | migrated | 2023-03-20 15:49:13 | 0.037s         | Initial configuration (four tables) |
++------------------------------------------+----------+---------------------+----------------+-------------------------------------+
+```
+
+Para dar de baja una migracion en especifico, ejecutamos el siguiente comando:
+
+```bash
+$ php bin/console doctrine:migrations:execute 'DoctrineMigrations\Version20230320203803' --down
+```
+
+
+## Relaciones de tablas
+***
+
+Ya tenemos creadas varias entidades junto con sus repositorios y arhivo de migracion, ahora vamos a generar las relaciones que existen entre esas entidades y sus respectivas actualizaciones en nuestra BBDD.
+
+Para editar una entidad ejecutamos el comando 
+
+```bash
+$ php bin/console make:entity
+```
+
+El asistente nos pedirá el nombre de la entidad que queremos crear o editar, escribimos Product, y llenamos el resto del asistente como se muestra a continuación:
+
+```bash
+Class name of the entity to create or update (e.g. VictoriousChef):
+ > Product
+Product
+
+ Your entity already exists! So let's add some new fields!
+
+ New property name (press <return> to stop adding fields):
+ > metadata 
+
+ Field type (enter ? to see all types) [string]:
+ > relation
+relation
+
+ What class should this entity be related to?:
+ > Metadata
+Metadata
+
+What type of relationship is this?
+ ------------ ------------------------------------------------------------------------ 
+  Type         Description                                                             
+ ------------ ------------------------------------------------------------------------ 
+  ManyToOne    Each Product relates to (has) one Metadata.                             
+               Each Metadata can relate to (can have) many Product objects.            
+                                                                                       
+  OneToMany    Each Product can relate to (can have) many Metadata objects.            
+               Each Metadata relates to (has) one Product.                             
+                                                                                       
+  ManyToMany   Each Product can relate to (can have) many Metadata objects.            
+               Each Metadata can also relate to (can also have) many Product objects.  
+                                                                                       
+  OneToOne     Each Product relates to (has) exactly one Metadata.                     
+               Each Metadata also relates to (has) exactly one Product.                
+ ------------ ------------------------------------------------------------------------ 
+
+ Relation type? [ManyToOne, OneToMany, ManyToMany, OneToOne]:
+ > OneToOne
+OneToOne
+
+ Is the Product.metadata property allowed to be null (nullable)? (yes/no) [yes]:
+ > no
+
+ Do you want to add a new property to Metadata so that you can access/update Product objects from it - e.g. $metadata->getProduct()? (yes/no) [no]:
+ > no
+
+ updated: src/Entity/Product.php
+
+ Add another property? Enter the property name (or press <return> to stop adding fields):
+ >
+
+
+           
+  Success! 
+           
+
+ Next: When you're ready, create a migration with php bin/console make:migration
+
+```
+
+Ahora vamos a generar la relación de Producto a Comentario, en este caso, un producto puede tener 1 o varios comentarios, por lo que es una relacion 1:n, con lo cual, el asistente deberá ser completado de la siguiente maneta:
+
+```bash
+$ php bin/console make:entity
+
+ Class name of the entity to create or update (e.g. AgreeableGnome):
+ > Product
+Product
+
+ Your entity already exists! So let's add some new fields!
+
+ New property name (press <return> to stop adding fields):
+ > comments
+
+ Field type (enter ? to see all types) [string]:
+ > relation
+relation
+
+ What class should this entity be related to?:
+ > Comment
+Comment
+
+What type of relationship is this?
+ ------------ ----------------------------------------------------------------------- 
+  Type         Description                                                            
+ ------------ ----------------------------------------------------------------------- 
+  ManyToOne    Each Product relates to (has) one Comment.                             
+               Each Comment can relate to (can have) many Product objects.            
+                                                                                      
+  OneToMany    Each Product can relate to (can have) many Comment objects.            
+               Each Comment relates to (has) one Product.                             
+                                                                                      
+  ManyToMany   Each Product can relate to (can have) many Comment objects.            
+               Each Comment can also relate to (can also have) many Product objects.  
+                                                                                      
+  OneToOne     Each Product relates to (has) exactly one Comment.                     
+               Each Comment also relates to (has) exactly one Product.                
+ ------------ ----------------------------------------------------------------------- 
+
+ Relation type? [ManyToOne, OneToMany, ManyToMany, OneToOne]:
+ > OneToMany
+OneToMany
+
+ A new property will also be added to the Comment class so that you can access and set the related Product object from it.
+
+ New field name inside Comment [product]:
+ >
+
+ Is the Comment.product property allowed to be null (nullable)? (yes/no) [yes]:
+ > no
+
+ Do you want to activate orphanRemoval on your relationship?
+ A Comment is "orphaned" when it is removed from its related Product.
+ e.g. $product->removeComment($comment)
+
+ NOTE: If a Comment may *change* from one Product to another, answer "no".
+
+ Do you want to automatically delete orphaned App\Entity\Comment objects (orphanRemoval)? (yes/no) [no]:
+ > yes
+
+ updated: src/Entity/Product.php
+ updated: src/Entity/Comment.php
+
+ Add another property? Enter the property name (or press <return> to stop adding fields):
+ >
+
+
+           
+  Success! 
+           
+
+ Next: When you're ready, create a migration with php bin/console make:migration
+
+```
+
+
+Por último, configuramos la relación m:n (ManyToMany) que existe entre Producto y Tag, llenando el asistente de la siguiente manera:
+
+```bash
+$ php bin/console make:entity
+
+ Class name of the entity to create or update (e.g. FierceChef):
+ > Product
+Product
+
+ Your entity already exists! So let's add some new fields!
+
+ New property name (press <return> to stop adding fields):
+ > tags
+
+ Field type (enter ? to see all types) [string]:
+ > relation
+relation
+
+ What class should this entity be related to?:
+ > Tag
+Tag
+
+What type of relationship is this?
+ ------------ ------------------------------------------------------------------- 
+  Type         Description                                                        
+ ------------ ------------------------------------------------------------------- 
+  ManyToOne    Each Product relates to (has) one Tag.                             
+               Each Tag can relate to (can have) many Product objects.            
+                                                                                  
+  OneToMany    Each Product can relate to (can have) many Tag objects.            
+               Each Tag relates to (has) one Product.                             
+                                                                                  
+  ManyToMany   Each Product can relate to (can have) many Tag objects.            
+               Each Tag can also relate to (can also have) many Product objects.  
+                                                                                  
+  OneToOne     Each Product relates to (has) exactly one Tag.                     
+               Each Tag also relates to (has) exactly one Product.                
+ ------------ ------------------------------------------------------------------- 
+
+ Relation type? [ManyToOne, OneToMany, ManyToMany, OneToOne]:
+ > ManyToMany
+ManyToMany
+
+ Do you want to add a new property to Tag so that you can access/update Product objects from it - e.g. $tag->getProducts()? (yes/no) [yes]:
+ > yes
+
+ A new property will also be added to the Tag class so that you can access the related Product objects from it.
+
+ New field name inside Tag [products]:
+ >
+
+ updated: src/Entity/Product.php
+ updated: src/Entity/Tag.php
+
+ Add another property? Enter the property name (or press <return> to stop adding fields):
+ >
+
+
+           
+  Success! 
+           
+
+ Next: When you're ready, create a migration with php bin/console make:migration
+
+```
+
+Procedemos a generar el archivo de migración de estas modificaciones que acabamos de hacer:
+
+```bash
+$ php bin/console make:migration
+```
+
+Y a continuación, ejecutamos esta migracion generada:
 
 ```bash
 $ php bin/console doctrine:migrations:migrate
