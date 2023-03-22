@@ -576,3 +576,136 @@ Y a continuación, ejecutamos esta migracion generada:
 ```bash
 $ php bin/console doctrine:migrations:migrate
 ```
+
+
+## Carga de datos falsos
+***
+
+Vamos a llenar nuestra BBDD con datos falsos para poder realizar nuestras pruebas.
+
+Para eso, vamos a ejecutar el comando
+
+```bash
+$ php bin/console make:fixtures
+```
+
+Sin embargo el sistema dará un error ya que nos hace falta la instalación de una dependencia:
+
+```bash
+$ composer require orm-fixtures --dev
+```
+
+Una vez instalado este componente, deberemos tener un nuevo directorio dentro de ***/src*** con el nombre de ***/src/DataFixtures*** y dentro de este directorio, tendremos un archivo con el siguiente contenido
+
+***/src/DataFixtures/AppFixtures.php***
+```php
+<?php
+
+namespace App\DataFixtures;
+
+use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Persistence\ObjectManager;
+
+class AppFixtures extends Fixture
+{
+    public function load(ObjectManager $manager): void
+    {
+        // $product = new Product();
+        // $manager->persist($product);
+
+        $manager->flush();
+    }
+}
+
+```
+
+Vamos a importar las clases que vamos a utilizar en este fixture:
+
+```php
+use App\Entity\Metadata;
+use App\Entity\Product;
+```
+
+Y vamos a modificar un poco el contenido del método **"load()"**
+
+```php
+public function load(ObjectManager $manager): void
+{
+  $product = new Product();
+  $product->setName('Producto de Prueba');
+  $product->setSummary('Resumen de Prueba');
+
+  $metadata = new Metadata();
+  $metadata->setCode(rand(100,200));
+  $metadata->setContent('Contenido oficial del producto');
+
+  $manager->persist($metadata);
+
+  $product->setMetadata($metadata);
+
+  $manager->persist($product);
+
+  $manager->flush();
+}
+```
+
+Para ejecutar esta configuración que acabamos de hacer, corremos el comando
+
+```bash
+$ php bin/console doctrine:fixtures:load
+```
+
+A continuación vamos a realizar los cambios necesarios para agregar etiquetas y comentarios y relacionarlas con el producto
+
+```php
+use App\Entity\Comment;
+use App\Entity\Tag;
+
+
+public function load(ObjectManager $manager): void
+{
+  $product = new Product();
+  $product->setName('Producto de Prueba');
+  $product->setSummary('Resumen de Prueba');
+
+  $metadata = new Metadata();
+  $metadata->setCode(rand(100,200));
+  $metadata->setContent('Contenido oficial del producto');
+
+  $manager->persist($metadata);
+
+  $product->setMetadata($metadata);
+
+  $manager->persist($product);
+
+  $tag1 = new Tag();
+  $tag1->setName('Etiqueta #1');
+  $manager->persist($tag1);
+
+  $tag2 = new Tag();
+  $tag2->setName('Etiqueta #2');
+  $manager->persist($tag2);
+
+  $product->addTag($tag1);
+  $product->addTag($tag2);
+
+  $comment1 = new Comment();
+  $comment1->setContent('Comentario #1');
+  $manager->persist($comment1);
+
+  $comment2 = new Comment();
+  $comment2->setContent('Comentario #2');
+  $manager->persist($comment2);
+
+  $product->addComment($comment1);
+  $product->addComment($comment2);
+
+  $manager->flush();
+}
+```
+
+
+
+## Fabrica de datos
+***
+
