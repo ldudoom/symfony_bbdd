@@ -1043,3 +1043,48 @@ Ahora que ya contamos con la configuración para trabajar con el front del proye
    <a href="#" class="btn btn-warning btn-lg">Comentarios</a>
    ```
 
+## Listado de Registros
+***
+
+Ahora vamos a mostrar en el navegador, en nuestro home, el listado de Productos que se encuentran en la BBDD
+
+Para eso, en primer lugar, vamos a dejar nuestro controlador con el siguiente código:
+
+1. Importamos las clases necesarias para poder realizar la consulta de productos
+   ```php
+   use App\Entity\Product;
+   use Doctrine\ORM\EntityManagerInterface;
+   ```
+2. Modificamos nuestro método ***index()*** de la siguiente manera:
+   ```php
+   #[Route('/', name: 'app_home')]
+    public function index(EntityManagerInterface $entityManager): Response
+    {
+        return $this->render('page/home.html.twig', [
+            'products' => $entityManager->getRepository(Product::class)->findAll(),
+        ]);
+    }
+   ```
+3. Imprimimos los datos enviados desde el controlador en la vista ***/templates/page/home.html.twig***
+```html
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello PageController!{% endblock %}
+
+{% block body %}
+    {% for product in products %}
+        <h2>
+            <a href="#" class="text-dark text-decoration-none">{{ product.name }}</a>
+        </h2>
+        <p>{{ product.summary }}</p>
+        <p class="text-muted">
+            {{ product.comments|length }} Comentarios
+            |
+            {% for tag in product.tags %}
+                <a href="#" class="badge bg-light text-dark text-decoration-none">{{ tag.name }}</a>
+            {% endfor %}
+        </p>
+    {% endfor %}
+{% endblock %}
+
+```
