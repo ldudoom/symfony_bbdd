@@ -917,9 +917,129 @@ class PageController extends AbstractController
     #[Route('/', name: 'app_home')]
     public function index(): Response
     {
-        return $this->render('page/index.html.twig', [
+        return $this->render('page/home.html.twig', [
             'controller_name' => 'PageController',
         ]);
     }
 }
 ```
+
+## Plantilla Web
+***
+
+Ahora que ya contamos con la configuración para trabajar con el front del proyecto, vamos a proceder con la construcción de la plantilla web.
+
+1. Modificamos el método index() de nuestro PageController
+   
+   ```php
+   #[Route('/', name: 'app_home')]
+   public function index(): Response
+   {
+        return $this->render('page/home.html.twig');
+   }
+   ```
+   
+2. Vamos a las plantillas y renombramos el archivo ***/templates/page/index.html.twig*** a ***/templates/page/home.html.twig***
+3. Dejamos al archivo ***/templates/page/home.html.twig*** con el siguiente código
+
+   ```html
+   {% extends 'base.html.twig' %}
+
+   {% block title %}Hello PageController!{% endblock %}
+   
+   {% block body %}
+   <h1>Hello Home !</h1>
+   {% endblock %}  
+   ```
+4. Dejamos al archivo ***/templates/base.html.twig*** con el siguiente codigo:
+
+   ```html
+   <!DOCTYPE html>
+   <html>
+       <head>
+           <meta charset="UTF-8">
+           <title>{% block title %}Welcome!{% endblock %}</title>
+   
+           {% block stylesheets %}
+               {{ encore_entry_link_tags('app') }}
+           {% endblock %}
+   
+           {% block javascripts %}
+               {{ encore_entry_script_tags('app') }}
+           {% endblock %}
+       </head>
+       <body>
+           {{ include('common/_menu.html.twig') }}
+   
+           <div class="container">
+               <div class="row">
+                   <div class="col-md-9">
+                       {% block body %}{% endblock %}
+                   </div>
+                   <div class="col-md-3">
+                       {{ include('common/_aside.html.twig') }}
+                   </div>
+               </div>
+           </div>
+   
+       </body>
+   </html>
+   
+   ```
+
+5. Creamos el directorio ***/templates/common***
+6. Creamos, dentro de common, los archivos 
+   - /templates/common/_aside.html.twig
+   - /templates/common/_menu.html.twig
+7. En el archivo ***/templates/common/_menu.html.twig*** colocamos el siguiente código
+
+```html
+<header class="navbar navbar-dark bg-dark mb-5">
+    <div class="container">
+        <span class="navbar-brand mb-0 h1">Symfony/Doctrine</span>
+
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a href="{{ path('app_home') }}" class="nav-link text-white">
+                    Home
+                </a>
+            </li>
+
+        </ul>
+    </div>
+</header>
+```
+
+8. En el archivo ***/templates/common/_aside.html.twig*** colocamos el siguiente código
+
+```html
+<div class="p-3 mb-3 bg-dark text-white rounded">
+    <p>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis tincidunt,
+        dui sed pulvinar auctor, arcu lorem faucibus massa, sodales luctus nisi
+        nisi consectetur velit. Vestibulum eleifend laoreet congue.
+    </p>
+    <p>
+        Aliquam bibendum
+        dolor arcu, quis tristique metus consectetur eget. Aliquam ut lacus lectus.
+        Fusce molestie faucibus quam, in dapibus risus tincidunt et. Praesent lobortis
+        mollis justo eget aliquet. Maecenas pretium elementum molestie.
+    </p>
+    <p class="mb-0">
+        Mauris venenatis
+        accumsan libero eu rhoncus. Ut rhoncus, lectus et aliquet pulvinar, est ligula
+        aliquam eros, non dapibus risus odio sit amet mi. Aliquam erat volutpat. Donec
+        vitae maximus magna, nec aliquet arcu.
+    </p>
+</div>
+
+<p class="">
+    Cras <strong>scelerisque lobortis velit</strong>, a imperdiet quam facilisis eget.
+    Nullam pellentesque felis sit amet purus pharetra luctus.
+    Vivamus eleifend commodo dolor, <strong>quis aliquam odio porta non</strong>.
+    Quisque at egestas nibh, et dignissim enim. Aenean id eros enim.
+</p>
+
+<a href="#" class="btn btn-warning btn-lg">Comentarios</a>
+```
+
