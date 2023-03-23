@@ -709,3 +709,171 @@ public function load(ObjectManager $manager): void
 ## Fabrica de datos
 ***
 
+Vamos ahora a generar la funcionalidad para poder tener una fabrica de datos, para poder simular el tener datos reales en nuestra BBDD para poder realizar nuestras pruebas.
+
+Vamos a empezar por ejecutar lo siguiente:
+
+1. Instalamos el componente necesario para poder generar Factories
+   ```bash
+   $ composer require zenstruck/foundry --dev
+   ```
+2. Iniciamos con la generación de nuestro Factory ejecutando
+   ```bash
+   $ php bin/console make:factory
+   ```
+3. LLenamos el asistente con la siguiente información
+   ```bash
+   // Note: pass --test if you want to generate factories in your tests/ directory
+
+   // Note: pass --all-fields if you want to generate default values for all fields, not only required fields
+   
+   Entity, Document or class to create a factory for:
+   [0] App\Entity\Comment
+   [1] App\Entity\Metadata
+   [2] App\Entity\Product
+   [3] App\Entity\Tag
+   [4] All
+   > 4
+   4
+   
+   created: src/Factory/MetadataFactory.php
+   created: src/Factory/ProductFactory.php
+   created: src/Factory/CommentFactory.php
+   created: src/Factory/TagFactory.php
+   
+   
+   Success!
+   
+   
+   Next: Open your new factory and set default values/states.
+   Find the documentation at https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#model-factories
+   ```
+
+Este comando generó nuevos archivos dentro del directorio ***"/src/Factory"***
+
+- CommentFactory.php
+- MetadataFactory.php
+- ProductFactory.php
+- TagFactory.php
+
+El archivo ProductFactory.php por ejemplo, se generó con el siguiente código fuente
+
+***/src/Factory/ProductFactory.php***
+```php
+<?php
+
+namespace App\Factory;
+
+use App\Entity\Product;
+use App\Repository\ProductRepository;
+use Zenstruck\Foundry\ModelFactory;
+use Zenstruck\Foundry\Proxy;
+use Zenstruck\Foundry\RepositoryProxy;
+
+/**
+ * @extends ModelFactory<Product>
+ *
+ * @method        Product|Proxy create(array|callable $attributes = [])
+ * @method static Product|Proxy createOne(array $attributes = [])
+ * @method static Product|Proxy find(object|array|mixed $criteria)
+ * @method static Product|Proxy findOrCreate(array $attributes)
+ * @method static Product|Proxy first(string $sortedField = 'id')
+ * @method static Product|Proxy last(string $sortedField = 'id')
+ * @method static Product|Proxy random(array $attributes = [])
+ * @method static Product|Proxy randomOrCreate(array $attributes = [])
+ * @method static ProductRepository|RepositoryProxy repository()
+ * @method static Product[]|Proxy[] all()
+ * @method static Product[]|Proxy[] createMany(int $number, array|callable $attributes = [])
+ * @method static Product[]|Proxy[] createSequence(iterable|callable $sequence)
+ * @method static Product[]|Proxy[] findBy(array $attributes)
+ * @method static Product[]|Proxy[] randomRange(int $min, int $max, array $attributes = [])
+ * @method static Product[]|Proxy[] randomSet(int $number, array $attributes = [])
+ */
+final class ProductFactory extends ModelFactory
+{
+    /**
+     * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#factories-as-services
+     *
+     * @todo inject services if required
+     */
+    public function __construct()
+    {
+        parent::__construct();
+    }
+
+    /**
+     * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#model-factories
+     *
+     * @todo add your default values here
+     */
+    protected function getDefaults(): array
+    {
+        return [
+            'metadata' => MetadataFactory::new(),
+            'name' => self::faker()->sentence(),
+            'summary' => self::faker()->text(),
+        ];
+    }
+
+    /**
+     * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#initialization
+     */
+    protected function initialize(): self
+    {
+        return $this
+            // ->afterInstantiate(function(Product $product): void {})
+        ;
+    }
+
+    protected static function getClass(): string
+    {
+        return Product::class;
+    }
+}
+
+```
+
+Vamos a empezar a utilizar estas fabricas de datos, para lo cual, nuestra clase ***AppFixtures.php*** la vamos a modificar de tal manera que se vea así:
+
+***/src/DataFixtures/AppFixtures.php***
+```php
+namespace App\DataFixtures;
+
+use App\Factory\ProductFactory;
+use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Persistence\ObjectManager;
+
+class AppFixtures extends Fixture
+{
+    public function load(ObjectManager $manager): void
+    {
+        ProductFactory::createMany(20);
+    }
+}
+
+```
+
+Ahora vamos a colocar una configuración un poco mas detallada, para tener datos de prueba en nuestra aplicación. Para eso, dejamos el archivo AppFixtures.php de la siguiente manera:
+***/src/DataFixtures/AppFixtures.php***
+```php
+namespace App\DataFixtures;
+
+use App\Factory\CommentFactory;
+use App\Factory\ProductFactory;
+use App\Factory\TagFactory;
+use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Persistence\ObjectManager;
+
+
+class AppFixtures extends Fixture
+{
+    public function load(ObjectManager $manager): void
+    {
+        TagFactory::createMany(5);
+        ProductFactory::createMany(20, [
+           'comments' => CommentFactory::new()->many(0,10),
+           'tags' => TagFactory::randomRange(2,5),
+        ]);
+    }
+}
+```
