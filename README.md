@@ -19,7 +19,7 @@ Una vez que tenemos instalado nuestro proyecto en su versión básica, vamos a i
 $ composer require symfony/maker-bundle --dev
 $ composer require symfony/orm-pack
 $ composer require symfony/form
-$ composer require symfony/debug-bundle
+$ composer require symfony/debug-pack
 $ composer require symfony/twig-pack
 $ composer require symfony/webpack-encore-bundle
 ```
@@ -57,6 +57,18 @@ $ npm install
     ```bash
     $ npm run dev
     ```
+   
+Este momento ya podemos iniciar nuestro servidor local para verificar que el proyecto este correctamente configurado y levantado:
+
+```bash
+$ symfony serve
+```
+
+**NOTA:** Para asegurarnos que no existe ningun servidor corriendo, o para dar de baja si alguno esta al aire podemos ejecutar:
+
+```bash
+$ symfony server:stop
+```
 
 Ahora vamos a generar nuestra BBDD, para eso, vamos a generar nuestro archivo de entorno y lo vamos a llamar ***".env.local"***
 
@@ -854,6 +866,8 @@ class AppFixtures extends Fixture
 ```
 
 Ahora vamos a colocar una configuración un poco mas detallada, para tener datos de prueba en nuestra aplicación. Para eso, dejamos el archivo AppFixtures.php de la siguiente manera:
+
+
 ***/src/DataFixtures/AppFixtures.php***
 ```php
 namespace App\DataFixtures;
@@ -873,6 +887,38 @@ class AppFixtures extends Fixture
         ProductFactory::createMany(20, [
            'comments' => CommentFactory::new()->many(0,10),
            'tags' => TagFactory::randomRange(2,5),
+        ]);
+    }
+}
+```
+
+## Frontend
+***
+
+Ahora vamos a visualizar y administrar la información de la BBDD desde el navegador.
+
+
+Creamos nuestro controlador
+
+```bash
+$ php bin/console make:controller Page
+```
+Por último, de momento lo unico que vamos a hacer es cambiar la ruta de nuestro nuevo controlador para que apunte a la raíz del proyecto, con lo que nuestro controlador deberá quedar de la siguiente manera:
+
+```php
+namespace App\Controller;
+
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+
+class PageController extends AbstractController
+{
+    #[Route('/', name: 'app_home')]
+    public function index(): Response
+    {
+        return $this->render('page/index.html.twig', [
+            'controller_name' => 'PageController',
         ]);
     }
 }
