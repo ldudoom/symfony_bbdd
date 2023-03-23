@@ -1088,3 +1088,33 @@ Para eso, en primer lugar, vamos a dejar nuestro controlador con el siguiente c√
 {% endblock %}
 
 ```
+
+Para ejecutar funciones como map(), reduce() o filter() en twig en lugar de los bucles for, primero debemos instalar estas 2 dependencias:
+
+```bash
+$ composer require twig/markdown-extra 
+$ composer require league/commonmark
+```
+
+Una vez instaladas, podemos dejar el c√≥digo de la siguiente manera:
+
+```html
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello PageController!{% endblock %}
+
+{% block body %}
+    {% for product in products %}
+        <h2>
+            <a href="#" class="text-dark text-decoration-none">{{ product.name }}</a>
+        </h2>
+        <p>{{ product.summary }}</p>
+        <p class="text-muted">
+            {{ product.comments|length }} Comentarios
+            |
+           {{ product.tags|map(tag => '<a href="#" class="badge bg-light text-dark text-decoration-none">' ~ tag.name|markdown_to_html ~ '</a>')|join("")|raw }}
+        </p>
+    {% endfor %}
+{% endblock %}
+
+```

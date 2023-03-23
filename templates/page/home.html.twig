@@ -11,9 +11,7 @@
         <p class="text-muted">
             {{ product.comments|length }} Comentarios
             |
-            {% for tag in product.tags %}
-                <a href="#" class="badge bg-light text-dark text-decoration-none">{{ tag.name }}</a>
-            {% endfor %}
+            {{ product.tags|map(tag => '<a href="#" class="badge bg-light text-dark text-decoration-none">' ~ tag.name|markdown_to_html ~ '</a>')|join("")|raw }}
         </p>
     {% endfor %}
 {% endblock %}
