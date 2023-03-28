@@ -1323,14 +1323,53 @@ Vamos ahora a construir la lista de comentarios
 
 1. Vamos a modificar el controlador agregando un nuevo metodo de la siguiente manera:
 
-```php
-use App\Entity\Comment;
+   ```php
+   use App\Entity\Comment;
+   
+   #[Route('/comments', name: 'app_comments')]
+    public function comments(EntityManagerInterface $entityManager): Response
+    {
+        return $this->render('page/comments.html.twig', [
+            'comments' => $entityManager->getRepository(Comment::class)->findAll(),
+        ]);
+    }
+   ```
 
-#[Route('/comments', name: 'app_comments')]
- public function comments(EntityManagerInterface $entityManager): Response
- {
-     return $this->render('page/comments.html.twig', [
-         'comments' => $entityManager->getRepository(Comment::class)->findAll(),
-     ]);
- }
-```
+2. Una vez hecho esto, podemos colocar el link hacia esta pagina en el boton de comentarios de nuestro sitio, este boton se encuentra en la vista ***_aside.html.twig***
+
+   ***/templates/common/_aside.html.twig***
+   ```html
+   <a href="{{ path('app_comments') }}" class="btn btn-warning btn-lg">Comentarios</a>
+   ```
+
+3. Vamos a crear nuestra vista de comentarios, para eso creamos el archivo ***comments.html.twig*** dentro de **page** y le colocamos el siguiente codigo:
+
+   ***/templates/page/comments.html.twig***
+   ```html
+   {% extends 'base.html.twig' %}
+   
+   {% block title %}Hello PageController!{% endblock %}
+   
+   {% block body %}
+   
+       <h1 class="mb-4">Comments</h1>
+   
+       {{ comments|map(comment => include('page/_comment_header.html.twig'))|join("")|raw }}
+   
+   {% endblock %}
+   
+   ```
+
+4. Por ultimo, creamos el archivo ***_comment_header.html.twig*** dentro de **page** y le colocamos el siguiente codigo:
+
+   ***/templates/page/_comment_header.html.twig***
+   ```html
+   <h4>
+       <a href="{{ path('app_product', { id: comment.product.id}) }}" class="text-dark text-decoration-none">
+           {{ comment.product.name }}
+       </a>
+   </h4>
+   
+   {{ include('page/_comment.html.twig') }}
+   ```
+   

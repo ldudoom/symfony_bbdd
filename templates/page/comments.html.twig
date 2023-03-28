@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello PageController!{% endblock %}
+
+{% block body %}
+
+    <h1 class="mb-4">Comments</h1>
+
+    {{ comments|map(comment => include('page/_comment_header.html.twig'))|join("")|raw }}
+
+{% endblock %}
