@@ -3,15 +3,5 @@
 {% block title %}Hello PageController!{% endblock %}
 
 {% block body %}
-    {% for product in products %}
-        <h2>
-            <a href="#" class="text-dark text-decoration-none">{{ product.name }}</a>
-        </h2>
-        <p>{{ product.summary }}</p>
-        <p class="text-muted">
-            {{ product.comments|length }} Comentarios
-            |
-            {{ product.tags|map(tag => '<a href="#" class="badge bg-light text-dark text-decoration-none">' ~ tag.name|markdown_to_html ~ '</a>')|join("")|raw }}
-        </p>
-    {% endfor %}
+        {{ products|map(product => include('page/_product.html.twig'))|join("")|raw }}
 {% endblock %}

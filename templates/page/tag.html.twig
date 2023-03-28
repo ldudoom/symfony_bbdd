@@ -1,0 +1,9 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello PageController!{% endblock %}
+
+{% block body %}
+    <h3 class="mb-4">TAG: {{ tag.name|upper }}</h3>
+    <hr>
+    {{ products|map(product => include('page/_product.html.twig'))|join("")|raw }}
+{% endblock %}

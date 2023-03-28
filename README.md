@@ -1098,6 +1098,7 @@ $ composer require league/commonmark
 
 Una vez instaladas, podemos dejar el código de la siguiente manera:
 
+***/templates/page/home.html.twig***
 ```html
 {% extends 'base.html.twig' %}
 
@@ -1117,4 +1118,219 @@ Una vez instaladas, podemos dejar el código de la siguiente manera:
     {% endfor %}
 {% endblock %}
 
+```
+
+## Filtro por etiqueta
+***
+
+Vamos a generar la funcionalidad para que el sistema nos muestre los productos que pertenecen a un determinado tag.
+
+1. Vamos a modificar el Controlador agregandole un método que nos permita hacer este filtrado por etiqueta, y obviamente incluyendo la entidad de Tag para utilizarla
+
+   ```php
+    use App\Entity\Tag;
+   
+    #[Route('/tag/{id}', name: 'app_tag')]
+    public function tag(Tag $tag): Response
+    {
+        return $this->render('page/tag.html.twig', [
+            'tag' => $tag,
+            'products' => $tag->getProducts(),
+        ]);
+    }
+   ```
+   
+2. Vamos a separar y optimizar un poco el codigo de las vistas, en primer lugar vamos a generar un nuevo archivo dentro del dorectorio "page", y lo vamos a llamar ***_product.html.twig*** y vamos a colocar el siguiente codigo:
+
+   ***/templates/page/_product.html.twig***
+   ```html
+   <h2>
+       <a href="#" class="text-dark text-decoration-none">{{ product.name }}</a>
+   </h2>
+   <p>{{ product.summary }}</p>
+   <p class="text-muted">
+       {{ product.comments|length }} Comentarios
+       |
+       {{ product.tags|map(tag => '<a href="#" class="badge bg-light text-dark text-decoration-none">' ~ tag.name ~ '</a>')|join("")|raw }}
+   </p>
+   ```
+
+3. Ahora vamos a reducir el código de ***home.html.twig*** quitando el codigo de impresion de productos y en lugar de eso vamos a incluir la vista que acabamos de crear, y vamos a reemplazar el bucle "for" por la función "map()" de la siguiente manera:
+
+   ***/templates/page/home.html.twig***
+   ```html
+   {% extends 'base.html.twig' %}
+   
+   {% block title %}Hello PageController!{% endblock %}
+   
+   {% block body %}
+       {{ products|map(product => include('page/_product.html.twig'))|join("")|raw }}
+   {% endblock %}
+   ```
+Ahora ya tenemos la lista de productos de tal manera que la podemos reutilizar
+
+4.  Vamos ahora a agregar el link de los tags en cada uno de ellos en el archivo ***_product.html.twig*** quedando esta linea de la siguiente manera:
+   
+   ```html
+   {{ product.tags|map(tag => '<a href="'~ path('app_tag', {id: tag.id}) ~'" class="badge bg-light text-dark text-decoration-none">' ~ tag.name ~ '</a>')|join("")|raw }}
+   ```
+
+5. Ahora vamos a trabajar con la vista de las etiquetas, para lo cual, creamos el archivo ***tag.html.twig*** dentro del directorio "page" y colocamos el siguiente código:
+   
+   ***/templates/page/tag.html.twig***
+   ```html
+   {% extends 'base.html.twig' %}
+   
+   {% block title %}Hello PageController!{% endblock %}
+   
+   {% block body %}
+       <h3 class="mb-4">TAG: {{ tag.name|upper }}</h3>
+       <hr>
+       {{ products|map(product => include('page/_product.html.twig'))|join("")|raw }}
+   {% endblock %}
+   
+   ```
+**NOTA:** A partir de la versión 6.2 de symfony, este código funciona correctamente, sin embargo, si se realiza este ejercicio en una version anterior, se debe instalar el siguiente componente:
+
+```bash
+$ composer require sensio/framework-extra-bundle
+```
+
+## Detalle de un registro
+***
+
+Vamos ahora a generar una vista que muestre el detalle de un producto, para eso hacemos lo siguiente:
+
+1. Agregamos el siguiente método al controlador:
+
+   ```php
+   use App\Entity\Product;
+   
+   #[Route('/product/{id}', name: 'app_product')]
+   public function product(Product $product): Response
+   {
+      return $this->render('page/product.html.twig', [
+         'product' => $product,
+      ]);
+   }
+   ```
+
+2. Creamos el archivo ***product.html.twig*** dentro del directorio **page**
+3. Colocamos el siguiente código en la vista:
+
+   ***/templates/page/product.html.twig***
+   ```html
+   {% extends 'base.html.twig' %}
+
+   {% block title %}Hello PageController!{% endblock %}
+   
+   {% block body %}
+   
+       <h1 class="mb-4">{{ product.name|upper }}</h1>
+       <p><strong>Código: </strong> # {{ product.metadata.code }}</p>
+   
+       <p>{{ product.summary }}</p>
+       <hr>
+   
+       <p>{{ product.metadata.content }}</p>
+   
+       {{ include('page/_info.html.twig') }}
+   
+       <br>
+   
+       <div class="px-4">
+           {% for comment in product.comments %}
+               <div class="row mb-4">
+                   <h4 class="col-md-2">ID #{{ comment.id }}</h4>
+                   <p class="col-md-10">{{ comment.content }}</p>
+               </div>
+           {% endfor %}
+       </div>
+   
+   {% endblock %}
+   
+   ```
+
+4. Creamos el archivo ***_info.html.twig*** dentro de **page**
+5. Colocamos el siguiente código en el archivo _info
+
+   ***/templates/page/_info.html.twig***
+   ```html
+   <p class="text-muted">
+       {{ product.comments|length }} Comentarios
+       |
+       {{ product.tags|map(tag => '<a href="'~ path('app_tag', {'id': tag.id}) ~'" class="badge bg-light text-dark text-decoration-none">' ~ tag.name ~ '</a>')|join("")|raw }}
+   </p>
+   ```
+
+6. Refactorizamos el archivo ***_product.html.twig*** dejándolo de la siguiente manera:
+   
+   ***/templates/page/_product.html.twig***
+   ```html
+   <div class="mb-4">
+        <h2>
+           <a href="{{ path('app_product', {id: product.id}) }}" class="text-dark text-decoration-none">{{ product.name }}</a>
+        </h2>
+        <p>{{ product.summary }}</p>
+   
+        {{ include('page/_info.html.twig') }}
+   </div>
+   ```
+
+7. Vamos a refactorizar un poco, creamos el archivo ***_comment.html.twig*** en el directorio **page** y le colocamos el siguiente codigo:
+   
+   ***/templates/page/_comment.html.twig***
+   ```html
+   <div class="row mb-4">
+       <h4 class="col-md-2">ID #{{ comment.id }}</h4>
+       <p class="col-md-10">{{ comment.content }}</p>
+   </div>
+   ```
+8. Cambiamos el codigo del archivo ***product.html.twig*** de la siguiente manera
+
+   ```html
+   {% extends 'base.html.twig' %}
+   
+   {% block title %}Hello PageController!{% endblock %}
+   
+   {% block body %}
+   
+       <h1 class="mb-4">{{ product.name|upper }}</h1>
+       <p><strong>Código: </strong> # {{ product.metadata.code }}</p>
+   
+       <p>{{ product.summary }}</p>
+       <hr>
+   
+       <p>{{ product.metadata.content }}</p>
+   
+       {{ include('page/_info.html.twig') }}
+   
+       <br>
+   
+       <div class="px-4">
+           {{ product.comments|map(comment => include('page/_comment.html.twig'))|join("")|raw }}
+       </div>
+   
+   {% endblock %}
+   
+   ```
+
+
+## Lista de comentarios
+***
+
+Vamos ahora a construir la lista de comentarios
+
+1. Vamos a modificar el controlador agregando un nuevo metodo de la siguiente manera:
+
+```php
+use App\Entity\Comment;
+
+#[Route('/comments', name: 'app_comments')]
+ public function comments(EntityManagerInterface $entityManager): Response
+ {
+     return $this->render('page/comments.html.twig', [
+         'comments' => $entityManager->getRepository(Comment::class)->findAll(),
+     ]);
+ }
 ```
