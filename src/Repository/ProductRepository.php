@@ -39,6 +39,28 @@ class ProductRepository extends ServiceEntityRepository
         }
     }
 
+    public function findLatest(): array
+    {
+        // createQuery()
+        /*
+        return $this->getEntityManager()
+                    ->createQuery('SELECT p FROM App\Entity\Product p ORDER BY p.id DESC')
+                    ->setMaxResults(10)
+                    ->getResult();
+        */
+
+
+        // createQueryBuilder()
+        return $this->createQueryBuilder('p')
+                        ->orderBy('p.id', 'DESC')
+                        ->setMaxResults(10)
+                        ->getQuery()
+                        ->getResult();
+
+    }
+
+
+
 //    /**
 //     * @return Product[] Returns an array of Product objects
 //     */

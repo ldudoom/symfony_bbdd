@@ -30,7 +30,7 @@ Ahora procedemos a instalar los componentes para tener completamente habilitado 
 $ npm install
 ```
 
-***Nota:*** Para habilitar completamente los componentes de front (bootstrap) para formularios vamos a hacer lo siguiente:
+> ***Nota:*** Para habilitar completamente los componentes de front (bootstrap) para formularios vamos a hacer lo siguiente:
 
 1. Instalamos bootstrap en nuestro proyecto, ejecutando:
 
@@ -64,7 +64,7 @@ Este momento ya podemos iniciar nuestro servidor local para verificar que el pro
 $ symfony serve
 ```
 
-**NOTA:** Para asegurarnos que no existe ningun servidor corriendo, o para dar de baja si alguno esta al aire podemos ejecutar:
+> **NOTA:** Para asegurarnos que no existe ningun servidor corriendo, o para dar de baja si alguno esta al aire podemos ejecutar:
 
 ```bash
 $ symfony server:stop
@@ -1373,3 +1373,62 @@ Vamos ahora a construir la lista de comentarios
    {{ include('page/_comment.html.twig') }}
    ```
    
+## createQuery()
+***
+
+Ahora vamos a generar las consultas personalizadas, para optimizar nuestras consultas a la BBDD. Para eso trabajaremos con los Repositories
+
+Vamos a empezar por el **ProductRepository.php**, vamos a agregarle el siguiente método
+
+***/src/Repository/ProductRepository.php***
+```php
+public function findLatest(): array
+{
+     return $this->getEntityManager()
+                      ->createQuery('
+                            SELECT p 
+                            FROM App\Entity\Product p 
+                            ORDER BY p.id DESC'
+                      )
+            ->setMaxResults(10)
+            ->getResult();
+}
+```
+
+Y en nuestro controlador, actualizamos el método index() de la siguiente manera:
+
+***/src/Controller/PageController.php***
+```php
+#[Route('/', name: 'app_home')]
+public function index(EntityManagerInterface $entityManager): Response
+{
+     return $this->render('page/home.html.twig', [
+         'products' => $entityManager->getRepository(Product::class)->findLatest(),
+     ]);
+}
+```
+
+> **NOTA:** En este ejemplo estamos utilizando **<abbr title="Documentum Query Language">DQL</abbr>**, es el parámetro 
+que espera el método createQuery(), este lenguaje sirve para hacer consultas a través de la Entidad, en este caso Product
+
+> **NOTA:** EL método getSQL() nos devuelve la consulta SQL generada con nuestro código  
+
+
+## createQueryBuilder()
+***
+
+Vamos a generar ahora consultas personalizadas, pero ahora utilizando el constructor de consultas.  
+
+Para esto, vamos a modificar el código del repositorio de la siguiente manera:
+
+***/src/Repository/ProductRepository.php***
+```php
+public function findLatest(): array
+{
+     return $this->createQueryBuilder('p')
+                        ->orderBy('p.id', 'DESC')
+                        ->setMaxResults(10)
+                        ->getQuery()
+                        ->getResult();
+}
+```
