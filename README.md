@@ -1432,3 +1432,24 @@ public function findLatest(): array
                         ->getResult();
 }
 ```
+
+## Optimización del listado total
+***
+
+Vamos a optimizar las consultas SQL que se estan generando al momento de construir el listado principal, para eso
+vamos a realizar modificaciones en el repositorio de producto, dejando el método del ejemplo anterior de la 
+siguiente manera:
+
+```php
+public function findLatest(): array
+    {
+        return $this->createQueryBuilder('product')
+                        ->addSelect('comments', 'tags')
+                        ->leftJoin('product.comments', 'comments')
+                        ->leftJoin('product.tags', 'tags')
+                        ->orderBy('product.id', 'DESC')
+                        ->getQuery()
+                        ->getResult();
+
+    }
+```
