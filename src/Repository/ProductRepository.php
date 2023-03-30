@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Product;
+use App\Entity\Tag;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -49,6 +50,19 @@ class ProductRepository extends ServiceEntityRepository
                         ->getQuery()
                         ->getResult();
 
+    }
+
+    public function getAllByTag(Tag $tag): array
+    {
+        return $this->createQueryBuilder('product')
+            ->setParameter('tag', $tag)
+            ->andWhere(':tag MEMBER OF product.tags')
+            ->addSelect('comments', 'tags')
+            ->leftJoin('product.comments', 'comments')
+            ->leftJoin('product.tags', 'tags')
+            ->orderBy('product.id', 'DESC')
+            ->getQuery()
+            ->getResult();
     }
 
 

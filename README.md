@@ -1453,3 +1453,63 @@ public function findLatest(): array
 
     }
 ```
+
+## Optimización de filtro por etiquetas y comentarios
+***
+
+Vamos ahora a optimizar los metodos de filtro por tags y de lista de comentarios, y para esto vamos a realizar los siguientes pasos>
+
+1. Vamos a cambiar los métodos tag() y comments() del controlador **PageController**
+
+   ***/src/Controller/PageController.php***
+   ```php
+   #[Route('/tag/{id}', name: 'app_tag')]
+   public function tag(Tag $tag, EntityManagerInterface $entityManager): Response
+   {
+     return $this->render('page/tag.html.twig', [
+         'tag' => $tag,
+         'products' => $entityManager->getRepository(Product::class)->getAllByTag($tag),
+     ]);
+   }
+   
+   
+   #[Route('/comments', name: 'app_comments')]
+   public function comments(EntityManagerInterface $entityManager): Response
+   {
+     return $this->render('page/comments.html.twig', [
+         'comments' => $entityManager->getRepository(Comment::class)->findAllComments(),
+     ]);
+   }
+   
+   ```
+
+2. Ahora vamos a construir los metodos que estamos invocando, en los repositorios correspondientes:
+
+   ***/src/Repository/ProductRepository.php***
+   ```php
+   public function getAllByTag(Tag $tag): array
+    {
+        return $this->createQueryBuilder('product')
+            ->setParameter('tag', $tag)
+            ->andWhere(':tag MEMBER OF product.tags')
+            ->addSelect('comments', 'tags')
+            ->leftJoin('product.comments', 'comments')
+            ->leftJoin('product.tags', 'tags')
+            ->orderBy('product.id', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+   ```
+
+   ***/src/Repository/CommentRepository.php***
+   ```php
+   public function findAllComments(): array
+    {
+        return $this->createQueryBuilder('comment')
+                    ->addSelect('product')
+                    ->leftJoin('comment.product', 'product')
+                    ->orderBy('comment.id', 'DESC')
+                    ->getQuery()
+                    ->getResult();
+    }
+   ```
